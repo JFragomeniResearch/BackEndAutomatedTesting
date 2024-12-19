@@ -1,7 +1,7 @@
 from typing import Optional, Dict, Any, Union
 import json
 from requests import Response
-from ..beat import BEAT, TestConfig
+from beat import BEAT, TestConfig
 
 class APIHelper:
     """Helper class for API testing operations"""

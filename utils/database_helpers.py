@@ -1,7 +1,7 @@
 from typing import Any, List, Optional, Type, Union
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
-from ..beat import BEAT
+from beat import BEAT
 
 class DatabaseHelper:
     """Helper class for database testing operations"""

@@ -14,10 +14,12 @@ class DatabaseHelper:
         query: str, 
         params: Optional[dict] = None
     ) -> List[dict]:
-        """Execute raw SQL query and return results"""
-        with self.beat.db_session() as session:
-            result = session.execute(text(query), params or {})
-            return [dict(row) for row in result]
+        """Execute a query and return results"""
+        with self.beat.engine.connect() as connection:
+            result = connection.execute(text(query), params or {})
+            if result.returns_rows:
+                return [dict(row) for row in result]
+            return []
     
     def insert_data(
         self, 

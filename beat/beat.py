@@ -9,13 +9,12 @@ from contextlib import contextmanager
 
 @dataclass
 class TestConfig:
-    """Configuration class for the testing framework"""
-    api_base_url: str
-    db_connection_string: str
-    auth_token: Optional[str] = None
-    retry_attempts: int = 3
+    """Test configuration class"""
+    base_url: str = "https://jsonplaceholder.typicode.com"  # Example test API
+    db_url: str = "sqlite:///test.db"
+    api_key: str = "test_token"
     timeout: int = 30
-    environment: str = "test"
+    max_retries: int = 3
 
 class BEAT:
     """Backend Automated Testing Framework"""
@@ -23,7 +22,7 @@ class BEAT:
     def __init__(self, config: TestConfig):
         self.config = config
         self.logger = self._setup_logging()
-        self.db_engine = create_engine(config.db_connection_string)
+        self.db_engine = create_engine(config.db_url)
         self.session = None
     
     def _setup_logging(self) -> logging.Logger:
@@ -62,13 +61,13 @@ class BEAT:
         params: Optional[Dict[str, Any]] = None
     ) -> requests.Response:
         """Execute API request with retry logic"""
-        url = f"{self.config.api_base_url.rstrip('/')}/{endpoint.lstrip('/')}"
+        url = f"{self.config.base_url.rstrip('/')}/{endpoint.lstrip('/')}"
         headers = {}
         
-        if self.config.auth_token:
-            headers['Authorization'] = f"Bearer {self.config.auth_token}"
+        if self.config.api_key:
+            headers['Authorization'] = f"Bearer {self.config.api_key}"
         
-        for attempt in range(self.config.retry_attempts):
+        for attempt in range(self.config.max_retries):
             try:
                 response = requests.request(
                     method=method.upper(),
@@ -82,5 +81,5 @@ class BEAT:
                 
             except requests.RequestException as e:
                 self.logger.warning(f"Request attempt {attempt + 1} failed: {str(e)}")
-                if attempt == self.config.retry_attempts - 1:
+                if attempt == self.config.max_retries - 1:
                     raise

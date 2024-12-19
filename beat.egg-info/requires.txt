@@ -1,0 +1,4 @@
+pytest
+requests
+sqlalchemy
+pytest-html

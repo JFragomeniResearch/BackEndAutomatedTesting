@@ -1,0 +1,7 @@
+Metadata-Version: 2.1
+Name: beat
+Version: 0.1
+Requires-Dist: pytest
+Requires-Dist: requests
+Requires-Dist: sqlalchemy
+Requires-Dist: pytest-html

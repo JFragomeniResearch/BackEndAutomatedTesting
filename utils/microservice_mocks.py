@@ -1,6 +1,6 @@
 from typing import Optional, Dict, Any, Callable
 import json
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, Mock
 from requests import Response
 
 class MicroserviceMocker:
@@ -25,14 +25,12 @@ class MicroserviceMocker:
         return response
     
     @staticmethod
-    def mock_service_call(
-        return_value: Any,
-        side_effect: Optional[Callable] = None
-    ) -> MagicMock:
-        """Create a mock for a service call"""
-        mock = MagicMock()
-        mock.return_value = return_value
-        if side_effect:
+    def mock_service_call(return_value=None, side_effect=None):
+        """Create a mock service call"""
+        mock = Mock()
+        if return_value is not None:
+            mock.return_value = return_value
+        if side_effect is not None:
             mock.side_effect = side_effect
         return mock
     

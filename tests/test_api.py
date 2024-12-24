@@ -8,8 +8,8 @@ import requests
 def beat_framework():
     """Fixture to create BEAT instance with test configuration"""
     config = TestConfig(
-        api_base_url="https://api.example.com",
-        db_connection_string="sqlite:///test.db",
+        base_url="https://api.example.com",
+        db_url="sqlite:///test.db",
         auth_token="test_token"
     )
     return BEAT(config)

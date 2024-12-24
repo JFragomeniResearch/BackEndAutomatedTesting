@@ -6,11 +6,13 @@ import requests
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from contextlib import contextmanager
+from utils.report_generator import ReportGenerator
+from datetime import datetime
 
 @dataclass
 class TestConfig:
     """Test configuration class"""
-    base_url: str = "https://jsonplaceholder.typicode.com"  # Example test API
+    base_url: str = "https://api.example.com"
     db_url: str = "sqlite:///test.db"
     api_key: str = "test_token"
     timeout: int = 30
@@ -22,8 +24,9 @@ class BEAT:
     def __init__(self, config: TestConfig):
         self.config = config
         self.logger = self._setup_logging()
-        self.db_engine = create_engine(config.db_url)
+        self.engine = create_engine(config.db_url)
         self.session = None
+        self.test_results = []
     
     def _setup_logging(self) -> logging.Logger:
         """Configure logging for the test framework"""
@@ -83,3 +86,30 @@ class BEAT:
                 self.logger.warning(f"Request attempt {attempt + 1} failed: {str(e)}")
                 if attempt == self.config.max_retries - 1:
                     raise
+
+    def record_test_result(self, test_name, status, duration, error=None):
+        """Record individual test result"""
+        self.test_results.append({
+            'test_name': test_name,
+            'status': status,
+            'duration': duration,
+            'error': str(error) if error else None,
+            'timestamp': datetime.now().isoformat()
+        })
+
+    def generate_reports(self):
+        """Generate all report formats"""
+        generator = ReportGenerator(self.test_results)
+        
+        # Generate HTML report with charts
+        html_report = generator.generate_html_report()
+        
+        # Export to JSON and CSV
+        json_report = generator.export_results("json")
+        csv_report = generator.export_results("csv")
+        
+        return {
+            'html': html_report,
+            'json': json_report,
+            'csv': csv_report
+        }

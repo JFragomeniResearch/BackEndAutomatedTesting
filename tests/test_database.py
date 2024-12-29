@@ -6,9 +6,9 @@ from utils.database_helpers import DatabaseHelper
 def beat_framework():
     """Fixture to create BEAT instance with test configuration"""
     config = TestConfig(
-        base_url="https://api.example.com",
+        base_url="http://localhost:8000",
         db_url="sqlite:///test.db",
-        auth_token="test_token"
+        api_key="test_token"
     )
     return BEAT(config)
 

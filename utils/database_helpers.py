@@ -17,8 +17,16 @@ class DatabaseHelper:
         """Execute a database query and return results"""
         with self.beat.db_session() as session:
             result = session.execute(text(query), params or {})
-            # Fix: Convert SQLAlchemy Row objects to dictionaries properly
-            return [dict(zip(row.keys(), row)) for row in result]
+            
+            # Check if the query is a SELECT statement
+            if query.strip().upper().startswith('SELECT'):
+                # Get column names from result
+                columns = result.keys()
+                # Convert each row to a dictionary using column names
+                return [dict(zip(columns, row)) for row in result]
+            
+            # For non-SELECT queries (CREATE, INSERT, UPDATE, DELETE)
+            return []
     
     def insert_data(
         self, 
@@ -36,18 +44,27 @@ class DatabaseHelper:
         records: List[Dict]
     ) -> None:
         """Bulk insert records into a table"""
+        if not records:
+            return
+        
         with self.beat.db_session() as session:
-            query = text(f"INSERT INTO {table} ({','.join(records[0].keys())}) VALUES ({','.join([':' + k for k in records[0].keys()])})")
+            columns = records[0].keys()
+            placeholders = ','.join([':' + k for k in columns])
+            column_names = ','.join(columns)
+            query = text(f"INSERT INTO {table} ({column_names}) VALUES ({placeholders})")
+            
             for record in records:
                 session.execute(query, record)
+            session.commit()
     
     def clear_table(
         self, 
         table: str
     ) -> None:
-        """Delete all rows from specified table"""
+        """Clear all records from a table"""
         with self.beat.db_session() as session:
             session.execute(text(f"DELETE FROM {table}"))
+            session.commit()
     
     def verify_record_exists(
         self, 
@@ -61,3 +78,9 @@ class DatabaseHelper:
         with self.beat.db_session() as session:
             result = session.execute(text(query), conditions).first()
             return result.count > 0 
+
+    def execute_ddl(self, query: str) -> None:
+        """Execute DDL statements (CREATE, ALTER, DROP)"""
+        with self.beat.db_session() as session:
+            session.execute(text(query))
+            session.commit() 

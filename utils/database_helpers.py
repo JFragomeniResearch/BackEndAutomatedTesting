@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Type, Union
+from typing import Any, List, Optional, Type, Union, Dict
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
 from beat import BEAT
@@ -12,14 +12,13 @@ class DatabaseHelper:
     def execute_query(
         self, 
         query: str, 
-        params: Optional[dict] = None
-    ) -> List[dict]:
-        """Execute a query and return results"""
-        with self.beat.engine.connect() as connection:
-            result = connection.execute(text(query), params or {})
-            if result.returns_rows:
-                return [dict(row) for row in result]
-            return []
+        params: Dict = None
+    ) -> List[Dict]:
+        """Execute a database query and return results"""
+        with self.beat.db_session() as session:
+            result = session.execute(text(query), params or {})
+            # Fix: Convert SQLAlchemy Row objects to dictionaries properly
+            return [dict(zip(row.keys(), row)) for row in result]
     
     def insert_data(
         self, 
@@ -34,18 +33,13 @@ class DatabaseHelper:
     def bulk_insert(
         self, 
         table: str, 
-        data: List[dict]
+        records: List[Dict]
     ) -> None:
-        """Insert multiple rows of data into specified table"""
-        if not data:
-            return
-            
-        columns = data[0].keys()
-        query = f"INSERT INTO {table} ({','.join(columns)}) VALUES ({','.join([':' + k for k in columns])})"
-        
+        """Bulk insert records into a table"""
         with self.beat.db_session() as session:
-            for row in data:
-                session.execute(text(query), row)
+            query = text(f"INSERT INTO {table} ({','.join(records[0].keys())}) VALUES ({','.join([':' + k for k in records[0].keys()])})")
+            for record in records:
+                session.execute(query, record)
     
     def clear_table(
         self, 

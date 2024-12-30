@@ -9,7 +9,16 @@ class MockHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
-            response = {"id": 1, "name": "Test User"}
+            response = {
+                "id": 1,
+                "name": "Test User",
+                "email": "test@example.com",
+                "address": {
+                    "street": "123 Test St",
+                    "city": "Test City",
+                    "zipcode": "12345"
+                }
+            }
             self.wfile.write(json.dumps(response).encode())
         elif self.path == "/users/999":
             self.send_response(404)
@@ -23,10 +32,16 @@ class MockHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         if self.path == "/users":
+            content_length = int(self.headers['Content-Length'])
+            post_data = json.loads(self.rfile.read(content_length))
             self.send_response(201)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
-            response = {"id": 2, "name": "New User"}
+            response = {
+                "id": 2,
+                "name": post_data["name"],
+                "email": post_data["email"]
+            }
             self.wfile.write(json.dumps(response).encode())
 
 def start_mock_server():

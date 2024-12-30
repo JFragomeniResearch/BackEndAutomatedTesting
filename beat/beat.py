@@ -46,7 +46,7 @@ class BEAT:
     @contextmanager
     def db_session(self):
         """Database session context manager"""
-        session = Session(self.db_engine)
+        session = Session(self.engine)
         try:
             yield session
             session.commit()

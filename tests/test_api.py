@@ -1,16 +1,19 @@
 import pytest
-from beat import BEAT, TestConfig
+from beat import BEAT
 from utils.api_helpers import APIHelper
 from unittest.mock import Mock
 import requests
+from utils.test_config import TestConfig
 
 @pytest.fixture
 def beat_framework():
     """Fixture to create BEAT instance with test configuration"""
     config = TestConfig(
         base_url="http://localhost:8000",
+        api_key="test_token",
         db_url="sqlite:///test.db",
-        api_key="test_token"
+        max_retries=3,
+        retry_delay=0.1  # Shorter delay for tests
     )
     return BEAT(config)
 
